@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interactive Counting Chart 1 to 200</title>
+  <style>
+    :root {
+      --bg: #000;
+      --text: #fff;
+      --highlight: #ff0000;
+      --muted: #d0d0d0;
+      --cell-border: #555;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px;
+      overflow-x: hidden;
+    }
+
+    header {
+      width: min(100%, 1100px);
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin: 0 0 8px;
+    }
+
+    .instructions {
+      font-size: 1.1rem;
+      color: var(--muted);
+      margin: 0;
+    }
+
+    .status {
+      font-size: 1.3rem;
+      margin: 16px 0;
+      font-weight: bold;
+      min-height: 1.5em;
+    }
+
+    .chart {
+      width: min(100%, 1100px);
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      grid-template-rows: repeat(5, 86px);
+      gap: 10px;
+    }
+
+    .number-cell {
+      width: 100%;
+      height: 86px;
+      border: 2px solid var(--cell-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+      letter-spacing: 0;
+      border-radius: 8px;
+      background: #000;
+      color: #fff;
+      overflow: visible;
+      white-space: nowrap;
+      text-align: center;
+      position: relative;
+    }
+
+    .number-cell.current {
+      border-color: transparent;
+    }
+
+    .number-cell.current::after {
+      content: "";
+      position: absolute;
+      inset: -5px;
+      border: 8px solid var(--highlight);
+      border-radius: 12px;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    @media (max-width: 700px) {
+      body {
+        padding: 12px;
+      }
+
+      .chart {
+        gap: 6px;
+        grid-template-rows: repeat(5, 56px);
+      }
+
+      .number-cell {
+        height: 56px;
+        font-size: clamp(1.35rem, 5vw, 2rem);
+      }
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Counting Chart: 1 to 200</h1>
+    <p class="instructions">Press Enter or Space to move to the next number. Press R to restart.</p>
+    <div class="status" id="status" aria-live="polite">Current number: 0</div>
+  </header>
+
+  <main class="chart" id="chart" aria-label="Interactive counting chart showing 50 numbers at a time"></main>
+
+  <div id="announcement" class="sr-only" aria-live="assertive" aria-atomic="true"></div>
+
+  <script>
+    const chart = document.getElementById('chart');
+    const status = document.getElementById('status');
+    const announcement = document.getElementById('announcement');
+
+    const maxNumber = 200;
+    const numbersPerPage = 50;
+    let currentNumber = 1;
+    let hasStarted = false;
+
+    function getPageStart(number) {
+      return Math.floor((number - 1) / numbersPerPage) * numbersPerPage + 1;
+    }
+
+    function renderChart() {
+      chart.innerHTML = '';
+      const pageStart = getPageStart(currentNumber);
+      const pageEnd = Math.min(pageStart + numbersPerPage - 1, maxNumber);
+
+      for (let number = pageStart; number <= pageEnd; number += 1) {
+        const cell = document.createElement('div');
+        cell.className = 'number-cell';
+        cell.textContent = number;
+        cell.setAttribute('role', 'text');
+        cell.setAttribute(
+          'aria-label',
+          hasStarted && number === currentNumber ? `Current number ${number}` : `Number ${number}`
+        );
+
+        if (hasStarted && number === currentNumber) {
+          cell.classList.add('current');
+        }
+
+        chart.appendChild(cell);
+      }
+
+      const displayedNumber = hasStarted ? currentNumber : 0;
+      status.textContent = `Current number: ${displayedNumber}`;
+      announcement.textContent = hasStarted
+        ? (currentNumber === maxNumber
+          ? `Current number ${currentNumber}. You finished counting to 200.`
+          : `Current number ${currentNumber}`)
+        : 'Current number 0';
+    }
+
+    function nextNumber() {
+      if (!hasStarted) {
+        hasStarted = true;
+        renderChart();
+        return;
+      }
+
+      if (currentNumber < maxNumber) {
+        currentNumber += 1;
+        renderChart();
+      } else {
+        announcement.textContent = 'You are already at 200. Counting is complete.';
+      }
+    }
+
+    function restart() {
+      currentNumber = 1;
+      hasStarted = false;
+      renderChart();
+      announcement.textContent = 'Restarted. Press Enter or Space to show number 1.';
+    }
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        nextNumber();
+      }
+
+      if (event.key.toLowerCase() === 'r') {
+        event.preventDefault();
+        restart();
+      }
+    });
+
+    renderChart();
+  </script>
+</body>
+</html>
