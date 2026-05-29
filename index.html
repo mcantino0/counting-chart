@@ -134,7 +134,7 @@
   <header>
     <h1>Counting Chart: 1 to 200</h1>
     <p class="instructions">Press Enter or Space to move to the next number. Press R to restart.</p>
-    <div class="status" id="status" aria-live="polite">Current number: 0</div>
+    <div class="status" id="status" aria-hidden="true">Current number: 0</div>
   </header>
 
   <main class="chart" id="chart" aria-label="Interactive counting chart showing 50 numbers at a time"></main>
@@ -165,10 +165,7 @@
         cell.className = 'number-cell';
         cell.textContent = number;
         cell.setAttribute('role', 'text');
-        cell.setAttribute(
-          'aria-label',
-          hasStarted && number === currentNumber ? `Current number ${number}` : `Number ${number}`
-        );
+        cell.setAttribute('aria-label', `${number}`);
 
         if (hasStarted && number === currentNumber) {
           cell.classList.add('current');
@@ -179,11 +176,7 @@
 
       const displayedNumber = hasStarted ? currentNumber : 0;
       status.textContent = `Current number: ${displayedNumber}`;
-      announcement.textContent = hasStarted
-        ? (currentNumber === maxNumber
-          ? `Current number ${currentNumber}. You finished counting to 200.`
-          : `Current number ${currentNumber}`)
-        : 'Current number 0';
+      announcement.textContent = hasStarted ? String(currentNumber) : '';
     }
 
     function nextNumber() {
@@ -197,7 +190,7 @@
         currentNumber += 1;
         renderChart();
       } else {
-        announcement.textContent = 'You are already at 200. Counting is complete.';
+        announcement.textContent = String(maxNumber);
       }
     }
 
@@ -205,7 +198,7 @@
       currentNumber = 1;
       hasStarted = false;
       renderChart();
-      announcement.textContent = 'Restarted. Press Enter or Space to show number 1.';
+      announcement.textContent = '0';
     }
 
     document.addEventListener('keydown', (event) => {
