@@ -50,6 +50,36 @@
       margin: 0;
     }
 
+    .mode-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 16px 0 0;
+    }
+
+    .mode-button {
+      min-width: 180px;
+      padding: 12px 20px;
+      border: 3px solid #fff;
+      border-radius: 8px;
+      background: #000;
+      color: #fff;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .mode-button[aria-pressed="true"] {
+      background: #222;
+      box-shadow: inset 0 0 0 2px #fff;
+    }
+
+    .mode-button:focus-visible {
+      outline: 4px solid var(--highlight);
+      outline-offset: 3px;
+    }
+
     .status {
       font-size: 1.3rem;
       margin: 16px 0;
@@ -110,6 +140,17 @@
         gap: 6px;
         grid-template-rows: repeat(5, 56px);
       }
+
+      .mode-controls {
+        gap: 8px;
+      }
+
+      .mode-button {
+        min-width: 150px;
+        padding: 10px 14px;
+        font-size: 1rem;
+      }
+
       .number-cell {
         height: 56px;
         font-size: clamp(1.35rem, 5vw, 2rem);
@@ -132,11 +173,15 @@
 <body>
   <header>
     <h1>Counting Chart: 1 to 200</h1>
-    <p class="instructions">Press Enter or Space to move to the next number. Press T to count by tens, O to count by ones, and R to restart.</p>
+    <p class="instructions">Press Enter or Space to move to the next number. Use the buttons, or press T to count by tens and O to count by ones. Press R to restart.</p>
+    <div class="mode-controls" role="group" aria-label="Counting options">
+      <button class="mode-button" id="onesButton" type="button" aria-pressed="true">Count by ones</button>
+      <button class="mode-button" id="tensButton" type="button" aria-pressed="false">Count by tens</button>
+    </div>
     <div class="status" id="status" aria-hidden="true">Current number: 0</div>
   </header>
 
-  <main class="chart" id="chart" aria-label="Interactive counting chart showing 50 numbers at a time"></main>
+  <main class="chart" id="chart" tabindex="-1" aria-label="Interactive counting chart showing 50 numbers at a time"></main>
 
   <div id="announcement" class="sr-only" aria-live="assertive" aria-atomic="true"></div>
 
@@ -144,6 +189,8 @@
     const chart = document.getElementById('chart');
     const status = document.getElementById('status');
     const announcement = document.getElementById('announcement');
+    const onesButton = document.getElementById('onesButton');
+    const tensButton = document.getElementById('tensButton');
     const maxNumber = 200;
     const numbersPerPage = 50;
     const countModes = {
@@ -167,7 +214,13 @@
       return Math.floor((number - 1) / numbersPerPage) * numbersPerPage + 1;
     }
 
+    function updateModeButtons() {
+      onesButton.setAttribute('aria-pressed', countMode === 'ones' ? 'true' : 'false');
+      tensButton.setAttribute('aria-pressed', countMode === 'tens' ? 'true' : 'false');
+    }
+
     function renderChart() {
+      updateModeButtons();
       chart.innerHTML = '';
       const pageStart = getPageStart(currentNumber);
       const pageEnd = Math.min(pageStart + numbersPerPage - 1, maxNumber);
@@ -230,6 +283,41 @@
       renderChart();
       announcement.textContent = `Counting by ${countModes[countMode].label}`;
     }
+
+    function focusChartAfterModeChange() {
+      requestAnimationFrame(() => {
+        chart.focus({ preventScroll: true });
+      });
+    }
+
+    function activateModeButton(newMode) {
+      changeCountingMode(newMode);
+      focusChartAfterModeChange();
+    }
+
+    function handleModeButtonKeydown(event, newMode) {
+      if (event.key === 'Enter' || event.key === ' ' || event.code === 'Space') {
+        event.preventDefault();
+        event.stopPropagation();
+        activateModeButton(newMode);
+      }
+    }
+
+    onesButton.addEventListener('click', () => {
+      activateModeButton('ones');
+    });
+
+    tensButton.addEventListener('click', () => {
+      activateModeButton('tens');
+    });
+
+    onesButton.addEventListener('keydown', (event) => {
+      handleModeButtonKeydown(event, 'ones');
+    });
+
+    tensButton.addEventListener('keydown', (event) => {
+      handleModeButtonKeydown(event, 'tens');
+    });
 
     document.addEventListener('keydown', (event) => {
       const key = event.key.toLowerCase();
