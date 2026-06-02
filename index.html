@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Interactive Counting Chart 1 to 200</title>
+  <title>Tabla interactiva para contar del 1 al 200</title>
   <style>
     :root {
       --bg: #000;
@@ -172,18 +172,18 @@
 </head>
 <body>
   <header>
-    <h1>Counting Chart: 1 to 200</h1>
-    <p class="instructions">Press Enter or Space to move to the next number. Use the buttons, or press T to count by tens and O to count by ones. Press R to restart.</p>
-    <div class="mode-controls" role="group" aria-label="Counting options">
-      <button class="mode-button" id="onesButton" type="button" aria-pressed="true">Count by ones</button>
-      <button class="mode-button" id="tensButton" type="button" aria-pressed="false">Count by tens</button>
+    <h1>Tabla para contar: 1 a 200</h1>
+    <p class="instructions">Presiona Enter o Espacio para pasar al siguiente número. Usa los botones, o presiona T para contar de diez en diez y O para contar de uno en uno. Presiona R para reiniciar.</p>
+    <div class="mode-controls" role="group" aria-label="Opciones de conteo">
+      <button class="mode-button" id="onesButton" type="button" aria-pressed="true">Contar de uno en uno</button>
+      <button class="mode-button" id="tensButton" type="button" aria-pressed="false">Contar de diez en diez</button>
     </div>
-    <div class="status" id="status" aria-hidden="true">Current number: 0</div>
+    <div class="status" id="status" aria-hidden="true">Número actual: 0</div>
   </header>
 
-  <main class="chart" id="chart" tabindex="-1" aria-label="Interactive counting chart showing 50 numbers at a time"></main>
+  <main class="chart" id="chart" tabindex="-1" lang="es" aria-label="Tabla interactiva para contar, mostrando 50 números a la vez"></main>
 
-  <div id="announcement" class="sr-only" aria-live="assertive" aria-atomic="true"></div>
+  <div id="announcement" class="sr-only" lang="es" aria-live="assertive" aria-atomic="true"></div>
 
   <script>
     const chart = document.getElementById('chart');
@@ -230,7 +230,8 @@
         cell.className = 'number-cell';
         cell.textContent = number;
         cell.setAttribute('role', 'text');
-        cell.setAttribute('aria-label', `${number}`);
+        cell.setAttribute('lang', 'es');
+        cell.setAttribute('aria-label', String(number));
 
         if (hasStarted && number === currentNumber) {
           cell.classList.add('current');
@@ -240,7 +241,7 @@
       }
 
       const displayedNumber = hasStarted ? currentNumber : 0;
-      status.textContent = `Current number: ${displayedNumber}`;
+      status.textContent = `Número actual: ${displayedNumber}`;
       announcement.textContent = hasStarted ? String(currentNumber) : '';
     }
 
@@ -281,7 +282,7 @@
       countMode = newMode;
       resetCountingPosition();
       renderChart();
-      announcement.textContent = `Counting by ${countModes[countMode].label}`;
+      announcement.textContent = countMode === 'tens' ? 'Contando de diez en diez' : 'Contando de uno en uno';
     }
 
     function focusChartAfterModeChange() {
